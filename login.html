@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in · IELTS Mock Tests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root { --bg:#f8fafc; --card:#fff; --border:#e5e7eb; --navy:#1e3a5f; --navy-tint:#eef2f7; --red:#e11d48; --red-h:#be123c; --muted:#6b7280; --text:#1f2937; --ok:#047857; --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin:0; min-height:100%; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:16px; line-height:1.5; display:grid; place-items:center; min-height:100vh; padding:24px 16px; }
+:focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
+.card { width:100%; max-width:420px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:32px; box-shadow:0 10px 30px rgba(15,23,42,.05); }
+h1 { margin:0 0 4px; font-size:24px; color:var(--navy); }
+.sub { margin:0 0 20px; color:var(--muted); }
+.tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; margin-bottom:20px; background:var(--navy-tint); border-radius:10px; }
+.tabs button { border:0; background:transparent; padding:9px; border-radius:7px; font:600 15px var(--font); color:var(--navy); cursor:pointer; }
+.tabs button[aria-selected="true"] { background:#fff; box-shadow:0 1px 3px rgba(15,23,42,.12); }
+label { display:block; margin:14px 0 6px; font-size:14px; font-weight:600; }
+input { width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font:16px var(--font); color:var(--text); background:#fff; }
+input:focus { border-color:var(--navy); }
+.btn { width:100%; margin-top:20px; padding:14px; border:0; border-radius:10px; background:var(--red); color:#fff; font:700 17px var(--font); cursor:pointer; }
+.btn:hover { background:var(--red-h); }
+.btn:disabled { opacity:.6; cursor:default; }
+.link { background:none; border:0; padding:0; color:var(--navy); font:500 14px var(--font); text-decoration:underline; cursor:pointer; }
+.msg { margin-top:16px; padding:10px 12px; border-radius:8px; font-size:14px; }
+.msg.err { background:#fff1f2; color:#9f1239; }
+.msg.ok { background:#ecfdf5; color:var(--ok); }
+.row { margin-top:14px; text-align:right; }
+[hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main class="card" id="loginCard">
+  <h1 id="title">Welcome back</h1>
+  <p class="sub" id="sub">Sign in to save your progress across devices.</p>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button type="button" role="tab" id="tabIn" aria-selected="true">Sign in</button>
+    <button type="button" role="tab" id="tabUp" aria-selected="false">Create account</button>
+  </div>
+
+  <form id="form" novalidate>
+    <div id="nameRow" hidden>
+      <label for="name">Full name</label>
+      <input id="name" type="text" autocomplete="name" maxlength="60">
+    </div>
+    <div id="emailRow">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" inputmode="email">
+    </div>
+    <div id="passRow">
+      <label for="pass" id="passLabel">Password</label>
+      <input id="pass" type="password" autocomplete="current-password" minlength="8">
+    </div>
+    <div class="row" id="forgotRow"><button type="button" class="link" id="forgot">Forgot password?</button></div>
+    <button class="btn" id="go" type="submit">Sign in</button>
+    <div class="msg" id="msg" role="status" aria-live="polite" hidden></div>
+  </form>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="ielts-cloud.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var C = window.IeltsCloud;
+  var mode = 'in';   // 'in' | 'up' | 'reset' | 'newpass'
+  var next = C && C.safeNext ? C.safeNext(new URLSearchParams(location.search).get('next')) : 'index.html';
+
+  function msg(text, kind) { var m = $('msg'); m.textContent = text || ''; m.className = 'msg ' + (kind || 'err'); m.hidden = !text; }
+  function busy(b) { $('go').disabled = b; }
+
+  function setMode(m) {
+    mode = m; msg('');
+    var up = m === 'up', reset = m === 'reset', np = m === 'newpass';
+    $('tabs').hidden = reset || np;
+    $('tabIn').setAttribute('aria-selected', String(m === 'in'));
+    $('tabUp').setAttribute('aria-selected', String(up));
+    $('nameRow').hidden = !up;
+    $('emailRow').hidden = np;
+    $('passRow').hidden = reset;
+    $('forgotRow').hidden = m !== 'in';
+    $('pass').autocomplete = (up || np) ? 'new-password' : 'current-password';
+    $('passLabel').textContent = np ? 'New password' : (up ? 'Password (8+ characters)' : 'Password');
+    $('go').textContent = np ? 'Save new password' : reset ? 'Send reset link' : up ? 'Create account' : 'Sign in';
+    $('title').textContent = np ? 'Choose a new password' : reset ? 'Reset password' : up ? 'Create your account' : 'Welcome back';
+    $('sub').textContent = reset ? 'We will email you a link to set a new password.' : np ? '' : up ? 'Your answers and scores will be saved to your account.' : 'Sign in to save your progress across devices.';
+  }
+  $('tabIn').onclick = function () { setMode('in'); };
+  $('tabUp').onclick = function () { setMode('up'); };
+  $('forgot').onclick = function () { setMode('reset'); };
+
+  if (!C || !C.configured) {
+    $('form').hidden = true; $('tabs').hidden = true;
+    $('sub').textContent = '';
+    msg(C ? 'Supabase is not configured yet. Add your project URL and anon key at the top of ielts-cloud.js.' : 'Could not load the sign-in service. Check your connection and reload.');
+    return;
+  }
+  var sb = C.client;
+
+  // Already signed in? Skip the form.
+  C.ready.then(function (u) { if (u && mode === 'in' && !/type=recovery/.test(location.hash)) { C.noteUser(u); location.replace(next); } });
+
+  sb.auth.onAuthStateChange(function (ev) {
+    if (ev === 'PASSWORD_RECOVERY') setMode('newpass');
+  });
+
+  function friendly(e) {
+    var t = (e && e.message) || 'Something went wrong. Please try again.';
+    if (/invalid login/i.test(t)) return 'Email or password is incorrect.';
+    if (/email not confirmed/i.test(t)) return 'Please confirm your email first. Check your inbox for the link.';
+    if (/already registered/i.test(t)) return 'That email already has an account. Try signing in.';
+    if (/rate limit/i.test(t)) return 'Too many attempts. Wait a minute and try again.';
+    return t;
+  }
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault(); msg('');
+    var email = $('email').value.trim(), pass = $('pass').value, name = $('name').value.trim();
+    if (mode !== 'newpass' && !/^\S+@\S+\.\S+$/.test(email)) return msg('Enter a valid email address.');
+    if (mode !== 'reset' && pass.length < (mode === 'in' ? 1 : 8)) return msg(mode === 'in' ? 'Enter your password.' : 'Use at least 8 characters for your password.');
+    if (mode === 'up' && !name) return msg('Enter your name.');
+    busy(true);
+
+    var p;
+    if (mode === 'in') {
+      p = sb.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
+        if (r.error) throw r.error;
+        C.noteUser(r.data.user); location.replace(next);
+      });
+    } else if (mode === 'up') {
+      p = sb.auth.signUp({ email: email, password: pass, options: { data: { full_name: name }, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'login.html' } }).then(function (r) {
+        if (r.error) throw r.error;
+        if (r.data.session) { C.noteUser(r.data.user); location.replace(next); }
+        else msg('Account created. Check your email and click the confirmation link, then sign in.', 'ok');
+      });
+    } else if (mode === 'reset') {
+      p = sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }).then(function (r) {
+        if (r.error) throw r.error;
+        msg('If that email has an account, a reset link is on its way.', 'ok');
+      });
+    } else {
+      p = sb.auth.updateUser({ password: pass }).then(function (r) {
+        if (r.error) throw r.error;
+        history.replaceState(null, '', location.pathname); location.replace('index.html');
+      });
+    }
+    p.catch(function (err) { msg(friendly(err)); }).then(function () { busy(false); });
+  });
+
+  if (/type=recovery/.test(location.hash)) setMode('newpass');
+})();
+</script>
+</body>
+</html>

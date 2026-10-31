@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IELTS Mock Tests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --navy: #1e3a5f;
+  --navy-tint: #eef2f7;
+  --red: #e11d48;
+  --red-h: #be123c;
+  --muted: #6b7280;
+  --text: #1f2937;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.5;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+}
+:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; }
+.wrap { max-width: 1060px; margin: 0 auto; padding: 48px 24px 64px; }
+h1 { margin: 0 0 8px; font-size: 28px; line-height: 1.2; font-weight: 700; color: var(--navy); text-wrap: balance; }
+.sub { margin: 0 0 32px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .05);
+}
+.badge {
+  display: inline-grid; place-items: center; min-width: 40px; height: 30px; padding: 0 12px; margin-bottom: 20px;
+  border-radius: 999px; background: var(--navy-tint); color: var(--navy); font-size: 14px; font-weight: 700;
+}
+.card h2 { margin: 0 0 12px; font-size: 24px; line-height: 1.2; font-weight: 700; color: var(--navy); }
+.card p { margin: 0 0 24px; color: var(--muted); font-size: 17px; line-height: 1.6; }
+.btn {
+  display: inline-block; padding: 14px 28px; border-radius: 10px; background: var(--red); color: #fff;
+  font-weight: 700; font-size: 17px; text-decoration: none; transition: background .15s, transform .12s;
+}
+.btn:hover { background: var(--red-h); }
+.btn:active { transform: translateY(1px); }
+@media (max-width: 720px) {
+  .wrap { padding: 32px 16px 48px; }
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .card { padding: 24px; }
+  h1 { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+.userbar { display:flex; justify-content:flex-end; align-items:center; gap:12px; margin:-24px 0 24px; font-size:14px; color:var(--muted); }
+.userbar button { border:1px solid var(--border); background:#fff; border-radius:8px; padding:6px 12px; font:600 14px var(--font); color:var(--navy); cursor:pointer; }
+.userbar button:hover { background:var(--navy-tint); }
+.hint { margin:14px 0 0; font-size:14px; color:var(--muted); min-height:21px; }
+.hint b { color:var(--navy); }
+.progress { margin-top:40px; }
+.progress h2 { margin:0 0 16px; font-size:20px; color:var(--navy); }
+.stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-bottom:24px; }
+.stat { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px; }
+.stat b { display:block; font-size:24px; color:var(--navy); line-height:1.2; }
+.stat span { font-size:14px; color:var(--muted); }
+.tablewrap { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+th, td { padding:12px 16px; text-align:left; white-space:nowrap; }
+th { font-size:13px; font-weight:600; color:var(--muted); border-bottom:1px solid var(--border); }
+td { border-bottom:1px solid var(--border); }
+tr:last-child td { border-bottom:0; }
+.pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:13px; font-weight:600; background:var(--navy-tint); color:var(--navy); }
+.pill.prog { background:#fff7ed; color:#9a3412; }
+.empty { padding:24px; color:var(--muted); text-align:center; }
+@media (max-width:720px) { .stats { grid-template-columns:1fr; gap:12px; } .userbar { margin-top:-8px; } }
+</style>
+<style>html.auth-pending body{visibility:hidden}</style>
+<script>document.documentElement.classList.add('auth-pending')</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="ielts-cloud.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="userbar"><span id="who"></span><button type="button" id="signout">Sign out</button></div>
+  <h1>Choose a test</h1>
+  <p class="sub">Each test opens in this window. Your answers are saved to your account, so you can resume on any device.</p>
+  <div class="grid">
+    <section class="card">
+      <span class="badge" aria-hidden="true">L</span>
+      <h2>Listening</h2>
+      <p>40 questions in 4 sections. Recording plays once. 40 minutes.</p>
+      <a class="btn" href="listening.html" id="lbtn">Start Listening</a>
+      <div class="hint" data-test="listening-1"></div>
+    </section>
+    <section class="card">
+      <span class="badge" aria-hidden="true">R</span>
+      <h2>Reading</h2>
+      <p>40 questions in 3 passages. 60 minutes.</p>
+      <a class="btn" href="reading.html" id="rbtn">Start Reading</a>
+      <div class="hint" data-test="reading-320"></div>
+    </section>
+  </div>
+
+  <section class="progress" id="progress" hidden aria-labelledby="ph">
+    <h2 id="ph">Your progress</h2>
+    <div class="stats">
+      <div class="stat"><b id="sDone">0</b><span>Tests completed</span></div>
+      <div class="stat"><b id="sBest">—</b><span>Best band</span></div>
+      <div class="stat"><b id="sAvg">—</b><span>Average score</span></div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Test</th><th>Status</th><th>Score</th><th>Band</th><th>Date</th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<script>
+(function () {
+  var C = window.IeltsCloud; if (!C || !C.ready) return;
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, text, cls) { var e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+  function fmt(d) { return d ? new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
+  $('signout').onclick = function () { C.signOut(); };
+  C.ready.then(function (user) {
+    if (!user) return;
+    var nm = (user.user_metadata && user.user_metadata.full_name) || user.email;
+    $('who').textContent = nm;
+    return C.list().then(function (r) {
+      var rows = (r && r.data) || [];
+      var done = rows.filter(function (x) { return x.status === 'submitted'; });
+      var tb = $('hist'); tb.textContent = '';
+      document.querySelectorAll('.hint').forEach(function (h) {
+        var id = h.dataset.test, act = rows.filter(function (x) { return x.test_id === id && x.status === 'in_progress'; })[0];
+        var last = done.filter(function (x) { return x.test_id === id; })[0];
+        h.textContent = '';
+        if (act) { h.appendChild(el('b', 'In progress')); h.appendChild(document.createTextNode(' · ' + act.answered + '/40 answered · resume on the start screen')); }
+        else if (last && last.score != null) { h.appendChild(document.createTextNode('Last: ')); h.appendChild(el('b', last.score + '/40')); h.appendChild(document.createTextNode(' · band ' + last.band)); }
+      });
+      if (!rows.length) { var tr = el('tr'); var td = el('td', 'No attempts yet. Start a test above and your progress will appear here.', 'empty'); td.colSpan = 5; tr.appendChild(td); tb.appendChild(tr); }
+      rows.forEach(function (x) {
+        var tr = el('tr');
+        tr.appendChild(el('td', C.labels[x.test_id] || x.test_id));
+        var st = el('td'); st.appendChild(el('span', x.status === 'submitted' ? 'Completed' : 'In progress', 'pill' + (x.status === 'submitted' ? '' : ' prog'))); tr.appendChild(st);
+        tr.appendChild(el('td', x.status === 'submitted' ? (x.score != null ? x.score + ' / ' + x.total : 'Not marked') : x.answered + ' / 40 answered'));
+        tr.appendChild(el('td', x.band || '—'));
+        tr.appendChild(el('td', fmt(x.submitted_at || x.updated_at)));
+        tb.appendChild(tr);
+      });
+      var scored = done.filter(function (x) { return x.score != null; });
+      $('sDone').textContent = done.length;
+      if (scored.length) {
+        var bands = scored.map(function (x) { return parseFloat(x.band); }).filter(function (n) { return !isNaN(n); });
+        if (bands.length) $('sBest').textContent = Math.max.apply(null, bands).toFixed(1);
+        $('sAvg').textContent = Math.round(scored.reduce(function (a, x) { return a + x.score / x.total * 100; }, 0) / scored.length) + '%';
+      }
+      $('progress').hidden = false;
+    });
+  }).catch(function () {});
+})();
+</script>
+</body>
+</html>
